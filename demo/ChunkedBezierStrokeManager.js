@@ -377,9 +377,11 @@ export class ChunkedBezierStrokeManager {
         // Remove debug points if any
         this.removeDebugPoints(stroke);
 
-        // Remove and dispose all chunk meshes
+        // Remove and dispose all chunk meshes from their parent
         stroke.meshes.forEach(mesh => {
-            this.scene.remove(mesh);
+            if (mesh.parent) {
+                mesh.parent.remove(mesh);
+            }
             if (mesh.geometry) mesh.geometry.dispose();
         });
 

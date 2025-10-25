@@ -73,15 +73,20 @@ export class StrokeManager {
      * Update stroke geometry after transformation
      */
     updateStrokeGeometry(stroke) {
-        // Remove old meshes
+        // Remove old meshes from their parent (whiteboard or scene)
         stroke.meshes.forEach(mesh => {
-            this.scene.remove(mesh);
+            if (mesh.parent) {
+                mesh.parent.remove(mesh);
+            }
             if (mesh.geometry) mesh.geometry.dispose();
         });
         stroke.meshes = [];
         
         // Recreate with new positions
         const chunks = this.chunkedBezierManager.createChunks(stroke.points);
+        
+        // Get the parent from chunkedBezierManager (whiteboard)
+        const parent = this.chunkedBezierManager.parent;
         
         chunks.forEach((chunk, index) => {
             const chunkSegments = BezierConverter.createSegment(chunk.points);
@@ -101,7 +106,7 @@ export class StrokeManager {
                     stroke.width
                 );
                 if (chunkMesh) {
-                    this.scene.add(chunkMesh);
+                    parent.add(chunkMesh);
                     stroke.meshes.push(chunkMesh);
                 }
             }

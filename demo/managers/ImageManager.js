@@ -172,8 +172,10 @@ export class ImageManager {
     deleteImage(image) {
         if (!image || image.type !== 'image') return;
 
-        // Remove from scene
-        this.scene.remove(image.mesh);
+        // Remove from parent (whiteboard or scene)
+        if (image.mesh && image.mesh.parent) {
+            image.mesh.parent.remove(image.mesh);
+        }
 
         // Dispose resources
         if (image.geometry) image.geometry.dispose();
