@@ -13,9 +13,6 @@ export default defineConfig({
     },
     host: '0.0.0.0', // Allow access from network
     port: 5173,
-    hmr: {
-      protocol: 'wss',
-      clientPort: 5173
-    }
+    hmr: false // Disable HMR to avoid Node.js 22 WebSocket issues
   }
 });
