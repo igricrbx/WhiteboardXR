@@ -39,16 +39,16 @@ class WhiteboardDemo {
 
         // Initialize legacy managers
         this.inputManager = new InputManager(renderer.domElement, camera, whiteboard);
-        this.strokeRenderer = new StrokeRenderer(scene, camera, renderer);
+        this.strokeRenderer = new StrokeRenderer(scene, camera, renderer, whiteboard);
         this.bezierStrokeManager = new BezierStrokeManager(scene);
         
         // Create shared stroke material for chunked rendering
         const strokeMaterial = this.bezierStrokeManager.strokeMaterial;
-        this.chunkedBezierManager = new ChunkedBezierStrokeManager(scene, strokeMaterial, camera);
+        this.chunkedBezierManager = new ChunkedBezierStrokeManager(scene, strokeMaterial, camera, whiteboard);
 
         // Initialize new managers
         this.strokeManager = new StrokeManager(scene, this.chunkedBezierManager);
-        this.imageManager = new ImageManager(scene);
+        this.imageManager = new ImageManager(scene, whiteboard);
         
         // Share z-index counter between stroke and image managers
         this.globalZIndex = 0;

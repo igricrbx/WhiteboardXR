@@ -7,10 +7,11 @@ import { strokeVertexShader, strokeFragmentShader } from './shaders/strokeShader
  * Processes strokes in smaller chunks to avoid blocking and provide real-time feedback
  */
 export class ChunkedBezierStrokeManager {
-    constructor(scene, strokeMaterial, camera) {
+    constructor(scene, strokeMaterial, camera, parent = null) {
         this.scene = scene;
         this.strokeMaterial = strokeMaterial;
         this.camera = camera;
+        this.parent = parent || scene; // Use parent if provided, otherwise scene
         this.activeStrokes = []; // Strokes being built progressively
         
         // Chunking parameters
@@ -74,7 +75,7 @@ export class ChunkedBezierStrokeManager {
                     width
                 );
                 if (chunkMesh) {
-                    this.scene.add(chunkMesh);
+                    this.parent.add(chunkMesh);
                     stroke.meshes.push(chunkMesh);
                     stroke.segmentCount += chunkSegments.length;
                 }
@@ -110,7 +111,8 @@ export class ChunkedBezierStrokeManager {
         stroke.points.forEach(point => {
             const sphere = new THREE.Mesh(geometry, material);
             sphere.position.copy(point);
-            this.scene.add(sphere);
+            sphere.renderOrder = zIndex + 0.1;
+            this.parent.add(sphere);
             stroke.debugPoints.push(sphere);
         });
     }

@@ -4,8 +4,9 @@ import * as THREE from 'three';
  * Manages images on the whiteboard
  */
 export class ImageManager {
-    constructor(scene) {
+    constructor(scene, parent = null) {
         this.scene = scene;
+        this.parent = parent || scene; // Use parent if provided, otherwise scene
         this.images = [];
         this.textureLoader = new THREE.TextureLoader();
         this.maxFileSize = 50 * 1024 * 1024; // 50MB
@@ -90,7 +91,7 @@ export class ImageManager {
         mesh.position.copy(position);
 
         // Add to scene
-        this.scene.add(mesh);
+        this.parent.add(mesh);
 
         // Create image object (compatible with selection/transform system)
         const image = {

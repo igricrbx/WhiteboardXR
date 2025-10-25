@@ -4,10 +4,11 @@ import * as THREE from 'three';
  * Handles real-time stroke rendering while drawing (simple line preview)
  */
 export class StrokeRenderer {
-    constructor(scene, camera, renderer) {
+    constructor(scene, camera, renderer, parent = null) {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
+        this.parent = parent || scene; // Use parent if provided, otherwise scene
         this.currentStroke = null;
         this.currentLine = null;
         this.startCap = null;
