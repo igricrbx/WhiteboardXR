@@ -112,6 +112,17 @@ class WhiteboardDemo {
         
         // Deselect all strokes (hide selection UI)
         this.selectionManager.deselectAllStrokes();
+        
+        // Switch to XR animation loop
+        const renderer = this.whiteboardScene.getRenderer();
+        renderer.setAnimationLoop((time, frame) => {
+            if (frame) {
+                // VR mode - frame is XRFrame
+                // TODO: Update controllers and VR-specific logic here
+            }
+            this.updateFPS();
+            renderer.render(this.whiteboardScene.getScene(), this.whiteboardScene.getCamera());
+        });
     }
     
     exitVRMode() {
@@ -125,6 +136,11 @@ class WhiteboardDemo {
         if (this.uiController.getCurrentTool() === 'pen') {
             this.inputManager.setDrawingEnabled(true);
         }
+        
+        // Switch back to requestAnimationFrame
+        const renderer = this.whiteboardScene.getRenderer();
+        renderer.setAnimationLoop(null);
+        this.animate(); // Resume desktop animation loop
     }
 
     setupUICallbacks() {
@@ -509,15 +525,9 @@ class WhiteboardDemo {
     }
 
     animate() {
-        // Use XR animation loop when in VR, otherwise use requestAnimationFrame
-        if (this.isVRMode && this.vrManager && this.vrManager.isInVR()) {
-            // VR mode: Let renderer handle animation loop
-            this.whiteboardScene.getRenderer().setAnimationLoop(() => {
-                this.updateFPS();
-                this.whiteboardScene.render();
-            });
-        } else {
-            // Desktop mode: Standard requestAnimationFrame
+        // Desktop mode: Standard requestAnimationFrame
+        // VR mode uses setAnimationLoop set in setupVRCallbacks
+        if (!this.isVRMode) {
             requestAnimationFrame(() => this.animate());
             this.updateFPS();
             this.whiteboardScene.render();
