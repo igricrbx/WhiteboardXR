@@ -28,13 +28,14 @@ export class VRDebugDisplay {
         });
         
         this.panel = new THREE.Mesh(panelGeometry, panelMaterial);
-        this.panel.position.set(0, 2.8, 3.5); // Above whiteboard
+        this.panel.position.set(0, 3.2, 3.3); // Above whiteboard, slightly forward
+        this.panel.rotation.y = Math.PI; // Rotate 180 degrees to face player
         this.scene.add(this.panel);
         
         // Create canvas for text rendering
         this.canvas = document.createElement('canvas');
-        this.canvas.width = 1024;
-        this.canvas.height = 768;
+        this.canvas.width = 2048;
+        this.canvas.height = 1536;
         this.ctx = this.canvas.getContext('2d');
         
         // Create texture from canvas
@@ -103,10 +104,10 @@ export class VRDebugDisplay {
         
         // Set text style
         ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 32px monospace';
+        ctx.font = 'bold 64px monospace';
         
-        let y = 50;
-        const lineHeight = 45;
+        let y = 100;
+        const lineHeight = 90;
         
         // Helper to format numbers
         const fmt = (n) => n.toFixed(3);

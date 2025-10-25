@@ -67,9 +67,14 @@ export class VRLocomotionManager {
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
             const rotationAmount = this.currentRotationVelocity * deltaTime;
             
-            // Get camera's position relative to dolly (in dolly's local space)
+            // Get camera's world position
+            const cameraWorldPos = new THREE.Vector3();
+            this.camera.getWorldPosition(cameraWorldPos);
+            
+            // Convert to dolly's local space
             const cameraLocalPos = new THREE.Vector3();
-            this.dolly.worldToLocal(cameraLocalPos.copy(this.camera.position));
+            cameraLocalPos.copy(cameraWorldPos);
+            this.dolly.worldToLocal(cameraLocalPos);
             
             // Translate dolly so camera is at origin
             const dollyOffset = new THREE.Vector3();
