@@ -118,17 +118,14 @@ class WhiteboardDemo {
         this.vrLocomotion = new VRLocomotionManager(renderer);
         this.vrLocomotion.init(scene, session);
         
-        // Set up XR animation loop
+        // Set up XR animation loop (renderer handles rendering automatically in XR)
         renderer.setAnimationLoop((time, frame) => {
             if (frame) {
                 // Update locomotion
                 const deltaTime = this.clock.getDelta();
                 this.vrLocomotion.update(deltaTime);
                 
-                // Regular render
-                const scene = this.whiteboardScene.getScene();
-                const camera = this.whiteboardScene.getCamera();
-                renderer.render(scene, camera);
+                // Note: renderer.render() is called automatically by XR system
             }
         });
     }
