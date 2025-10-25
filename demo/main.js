@@ -172,7 +172,9 @@ class WhiteboardDemo {
             if (this.vrDebugDisplay) {
                 const vrCamera = this.vrManager.getVRCamera();
                 const dolly = this.vrManager.getDolly();
-                this.vrDebugDisplay.updateDebugInfo(vrCamera, dolly);
+                const rightInput = this.vrInputManager.getRightController();
+                const leftInput = this.vrInputManager.getLeftController();
+                this.vrDebugDisplay.updateDebugInfo(vrCamera, dolly, rightInput, leftInput);
             }
         }
     }

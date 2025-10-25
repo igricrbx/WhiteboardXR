@@ -16,7 +16,7 @@ export class VRDebugDisplay {
     createDebugPanel() {
         // Create a panel above the whiteboard (whiteboard is at 0, 1.5, 3.5)
         const panelWidth = 2.5;
-        const panelHeight = 1.5;
+        const panelHeight = 3.0;
         
         // Panel geometry
         const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
@@ -28,7 +28,7 @@ export class VRDebugDisplay {
         });
         
         this.panel = new THREE.Mesh(panelGeometry, panelMaterial);
-        this.panel.position.set(0, 3.2, 3.3); // Above whiteboard, slightly forward
+        this.panel.position.set(0, 3.8, 3.3); // Above whiteboard, slightly forward
         this.panel.rotation.y = Math.PI; // Rotate 180 degrees to face player
         this.scene.add(this.panel);
         
@@ -59,7 +59,7 @@ export class VRDebugDisplay {
         this.textMesh = textMesh;
     }
 
-    updateDebugInfo(camera, dolly) {
+    updateDebugInfo(camera, dolly, rightInput, leftInput) {
         // Get camera world position and rotation
         const cameraWorldPos = new THREE.Vector3();
         camera.getWorldPosition(cameraWorldPos);
@@ -88,7 +88,9 @@ export class VRDebugDisplay {
             cameraLocalPos,
             dollyPos,
             dollyRot,
-            distance
+            distance,
+            rightInput,
+            leftInput
         };
         
         this.render();
@@ -158,6 +160,23 @@ export class VRDebugDisplay {
         
         // Distance
         ctx.fillText(`CAM-DOLLY DIST: ${fmt(info.distance || 0)}m`, 40, y);
+        y += lineHeight * 1.5;
+        
+        // Controller inputs
+        ctx.fillText('RIGHT STICK (Move):', 40, y);
+        y += lineHeight;
+        ctx.fillText(`  Hand: ${info.rightInput?.hand || 'unknown'}`, 40, y);
+        y += lineHeight;
+        ctx.fillText(`  X: ${fmt(info.rightInput?.thumbstick?.x || 0)}`, 40, y);
+        y += lineHeight;
+        ctx.fillText(`  Y: ${fmt(info.rightInput?.thumbstick?.y || 0)}`, 40, y);
+        y += lineHeight * 1.3;
+        
+        ctx.fillText('LEFT STICK (Rotate):', 40, y);
+        y += lineHeight;
+        ctx.fillText(`  Hand: ${info.leftInput?.hand || 'unknown'}`, 40, y);
+        y += lineHeight;
+        ctx.fillText(`  X: ${fmt(info.leftInput?.thumbstick?.x || 0)}`, 40, y);
         
         // Update texture
         this.texture.needsUpdate = true;
