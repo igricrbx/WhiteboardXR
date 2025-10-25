@@ -4,9 +4,10 @@ import * as THREE from 'three';
  * Manages smooth locomotion (movement and rotation) in VR
  */
 export class VRLocomotionManager {
-    constructor(dolly, scene) {
+    constructor(dolly, scene, camera) {
         this.dolly = dolly;
         this.scene = scene;
+        this.camera = camera; // VR camera for rotation center
         
         // Movement parameters
         this.moveSpeed = 2.0; // meters per second
@@ -36,7 +37,7 @@ export class VRLocomotionManager {
         const strafeInput = rightStick.x;
         
         // Left stick: rotation only (left/right on X)
-        const rotationInput = -leftStick.x; // Invert X for natural rotation
+        const rotationInput = leftStick.x; // Positive = turn right, negative = turn left
         
         // Calculate target velocities
         const targetForward = forwardInput * this.moveSpeed;
@@ -62,9 +63,29 @@ export class VRLocomotionManager {
             smoothFactor
         );
         
-        // Apply rotation
+        // Apply rotation around camera position (user's head)
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
-            this.dolly.rotation.y += this.currentRotationVelocity * deltaTime;
+            const rotationAmount = this.currentRotationVelocity * deltaTime;
+            
+            // Get camera position in world space
+            const cameraWorldPos = new THREE.Vector3();
+            this.camera.getWorldPosition(cameraWorldPos);
+            
+            // Store camera position relative to dolly before rotation
+            const cameraToDolly = new THREE.Vector3();
+            cameraToDolly.copy(this.dolly.position).sub(cameraWorldPos);
+            
+            // Rotate the dolly
+            this.dolly.rotation.y += rotationAmount;
+            
+            // Calculate new camera world position after rotation
+            const newCameraWorldPos = new THREE.Vector3();
+            this.camera.getWorldPosition(newCameraWorldPos);
+            
+            // Adjust dolly position to keep camera at original world position
+            const offset = new THREE.Vector3();
+            offset.copy(cameraWorldPos).sub(newCameraWorldPos);
+            this.dolly.position.add(offset);
         }
         
         // Calculate movement in dolly's local space

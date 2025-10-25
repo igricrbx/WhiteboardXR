@@ -127,7 +127,8 @@ class WhiteboardDemo {
         
         // Setup VR locomotion manager
         const dolly = this.vrManager.getDolly();
-        this.vrLocomotionManager = new VRLocomotionManager(dolly, scene);
+        const vrCamera = this.vrManager.getVRCamera();
+        this.vrLocomotionManager = new VRLocomotionManager(dolly, scene, vrCamera);
         this.lastFrameTime = performance.now();
         
         // Switch to XR animation loop

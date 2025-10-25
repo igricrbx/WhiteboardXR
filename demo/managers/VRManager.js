@@ -221,6 +221,13 @@ export class VRManager {
     }
 
     /**
+     * Get the VR camera
+     */
+    getVRCamera() {
+        return this.renderer.xr.getCamera();
+    }
+
+    /**
      * Register callback for session start
      */
     onSessionStart(callback) {
