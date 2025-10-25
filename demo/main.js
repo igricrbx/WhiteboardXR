@@ -13,6 +13,7 @@ import { VRManager } from './managers/VRManager.js';
 import { VRButton } from './managers/VRButton.js';
 import { VRInputManager } from './managers/VRInputManager.js';
 import { VRLocomotionManager } from './managers/VRLocomotionManager.js';
+import { VRDebugDisplay } from './managers/VRDebugDisplay.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -26,6 +27,7 @@ class WhiteboardDemo {
         this.vrManager = null;
         this.vrInputManager = null;
         this.vrLocomotionManager = null;
+        this.vrDebugDisplay = null;
         this.isVRMode = false;
         this.lastFrameTime = 0;
         
@@ -130,6 +132,10 @@ class WhiteboardDemo {
         this.vrLocomotionManager = new VRLocomotionManager(dolly, scene);
         this.lastFrameTime = performance.now();
         
+        // Create VR debug display
+        this.vrDebugDisplay = new VRDebugDisplay(scene);
+        this.vrDebugDisplay.show();
+        
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
         const camera = this.whiteboardScene.getCamera();
@@ -162,6 +168,28 @@ class WhiteboardDemo {
                 this.vrLocomotionManager.update(deltaTime, rightInput, leftInput);
             }
         }
+        
+        // Update debug display
+        if (this.vrDebugDisplay) {
+            const camera = this.whiteboardScene.getCamera();
+            const dolly = this.vrManager.getDolly();
+            
+            this.vrDebugDisplay.setDebugData({
+                'Camera Pos': camera.position,
+                'Camera Rot': {
+                    x: camera.rotation.x * (180 / Math.PI),
+                    y: camera.rotation.y * (180 / Math.PI),
+                    z: camera.rotation.z * (180 / Math.PI)
+                },
+                'Dolly Pos': dolly.position,
+                'Dolly Rot': {
+                    x: dolly.rotation.x * (180 / Math.PI),
+                    y: dolly.rotation.y * (180 / Math.PI),
+                    z: dolly.rotation.z * (180 / Math.PI)
+                },
+                'FPS': Math.round(1 / deltaTime)
+            });
+        }
     }
     
     exitVRMode() {
@@ -177,6 +205,10 @@ class WhiteboardDemo {
         }
         
         // Clean up VR managers
+        if (this.vrDebugDisplay) {
+            this.vrDebugDisplay.dispose();
+            this.vrDebugDisplay = null;
+        }
         this.vrInputManager = null;
         this.vrLocomotionManager = null;
         this.lastFrameTime = 0;

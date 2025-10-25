@@ -36,7 +36,7 @@ export class VRLocomotionManager {
         const strafeInput = rightStick.x;
         
         // Left stick: rotation only (left/right on X)
-        const rotationInput = -leftStick.x; // Invert X for natural rotation
+        const rotationInput = leftStick.x; // Positive = turn right, negative = turn left
         
         // Calculate target velocities
         const targetForward = forwardInput * this.moveSpeed;
