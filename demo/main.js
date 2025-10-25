@@ -121,12 +121,17 @@ class WhiteboardDemo {
         
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
+        const scene = this.whiteboardScene.getScene();
+        const camera = this.whiteboardScene.getCamera();
+        
         renderer.setAnimationLoop((time, frame) => {
             if (frame) {
                 // VR mode - update controller input
                 this.updateVRFrame(frame);
             }
             this.updateFPS();
+            // Render the scene
+            renderer.render(scene, camera);
         });
     }
     
