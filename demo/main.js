@@ -11,6 +11,7 @@ import { UIController } from './managers/UIController.js';
 import { ImageManager } from './managers/ImageManager.js';
 import { VRManager } from './managers/VRManager.js';
 import { VRButton } from './managers/VRButton.js';
+import { VRInputManager } from './managers/VRInputManager.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -22,6 +23,7 @@ class WhiteboardDemo {
         this.fpsUpdateTime = 0;
         
         this.vrManager = null;
+        this.vrInputManager = null;
         this.isVRMode = false;
         
         this.init();
@@ -113,16 +115,31 @@ class WhiteboardDemo {
         // Deselect all strokes (hide selection UI)
         this.selectionManager.deselectAllStrokes();
         
+        // Setup VR input manager
+        this.vrInputManager = new VRInputManager(this.vrManager);
+        this.vrInputManager.setupControllers();
+        
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
         renderer.setAnimationLoop((time, frame) => {
             if (frame) {
-                // VR mode - frame is XRFrame
-                // TODO: Update controllers and VR-specific logic here
+                // VR mode - update controller input
+                this.updateVRFrame(frame);
             }
             this.updateFPS();
-            renderer.render(this.whiteboardScene.getScene(), this.whiteboardScene.getCamera());
         });
+    }
+    
+    updateVRFrame(frame) {
+        // Update controller input state
+        if (this.vrInputManager) {
+            this.vrInputManager.update();
+            
+            // Debug: Log input when thumbstick is active
+            if (this.vrInputManager.isThumbstickActive(0.3)) {
+                this.vrInputManager.logInputState();
+            }
+        }
     }
     
     exitVRMode() {
@@ -136,6 +153,9 @@ class WhiteboardDemo {
         if (this.uiController.getCurrentTool() === 'pen') {
             this.inputManager.setDrawingEnabled(true);
         }
+        
+        // Clean up VR input manager
+        this.vrInputManager = null;
         
         // Switch back to requestAnimationFrame
         const renderer = this.whiteboardScene.getRenderer();
