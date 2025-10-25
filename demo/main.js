@@ -13,7 +13,6 @@ import { VRManager } from './managers/VRManager.js';
 import { VRButton } from './managers/VRButton.js';
 import { VRInputManager } from './managers/VRInputManager.js';
 import { VRLocomotionManager } from './managers/VRLocomotionManager.js';
-import { VRDebugDisplay } from './managers/VRDebugDisplay.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -27,7 +26,6 @@ class WhiteboardDemo {
         this.vrManager = null;
         this.vrInputManager = null;
         this.vrLocomotionManager = null;
-        this.vrDebugDisplay = null;
         this.isVRMode = false;
         this.lastFrameTime = 0;
         
@@ -129,12 +127,8 @@ class WhiteboardDemo {
         
         // Setup VR locomotion manager
         const dolly = this.vrManager.getDolly();
-        const vrCamera = this.vrManager.getVRCamera();
-        this.vrLocomotionManager = new VRLocomotionManager(dolly, scene, vrCamera);
+        this.vrLocomotionManager = new VRLocomotionManager(dolly, scene);
         this.lastFrameTime = performance.now();
-        
-        // Setup VR debug display
-        this.vrDebugDisplay = new VRDebugDisplay(scene);
         
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
@@ -166,15 +160,6 @@ class WhiteboardDemo {
                 const rightInput = this.vrInputManager.getRightController();
                 const leftInput = this.vrInputManager.getLeftController();
                 this.vrLocomotionManager.update(deltaTime, rightInput, leftInput);
-            }
-            
-            // Update debug display
-            if (this.vrDebugDisplay) {
-                const vrCamera = this.vrManager.getVRCamera();
-                const dolly = this.vrManager.getDolly();
-                const rightInput = this.vrInputManager.getRightController();
-                const leftInput = this.vrInputManager.getLeftController();
-                this.vrDebugDisplay.updateDebugInfo(vrCamera, dolly, rightInput, leftInput);
             }
         }
     }

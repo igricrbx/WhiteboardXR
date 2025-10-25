@@ -9,27 +9,19 @@ export class VRInputManager {
         this.controllers = [];
         this.gamepadStates = new Map();
         
-        // Hand mapping (will be determined when controllers connect)
-        this.handToIndex = {
-            left: -1,
-            right: -1
-        };
-        
         // Input state for easy access
         this.inputState = {
             controller0: {
                 thumbstick: { x: 0, y: 0 },
                 trigger: 0,
                 grip: false,
-                buttons: { a: false, b: false },
-                hand: 'unknown'
+                buttons: { a: false, b: false }
             },
             controller1: {
                 thumbstick: { x: 0, y: 0 },
                 trigger: 0,
                 grip: false,
-                buttons: { x: false, y: false },
-                hand: 'unknown'
+                buttons: { x: false, y: false }
             }
         };
     }
@@ -63,22 +55,12 @@ export class VRInputManager {
      */
     onControllerConnected(event, index) {
         const gamepad = event.data.gamepad;
-        const hand = gamepad.hand || 'unknown';
-        
         console.log(`Controller ${index} connected:`, gamepad);
-        console.log(`  - Hand: ${hand}`);
+        console.log(`  - Hand: ${gamepad.hand || 'unknown'}`);
         console.log(`  - Buttons: ${gamepad.buttons?.length || 0}`);
         console.log(`  - Axes: ${gamepad.axes?.length || 0}`);
         
         this.gamepadStates.set(index, gamepad);
-        
-        // Map controller index to hand
-        if (hand === 'left' || hand === 'right') {
-            this.handToIndex[hand] = index;
-            const state = index === 0 ? this.inputState.controller0 : this.inputState.controller1;
-            state.hand = hand;
-            console.log(`  - Mapped ${hand} hand to controller ${index}`);
-        }
     }
 
     /**
@@ -146,28 +128,16 @@ export class VRInputManager {
     }
 
     /**
-     * Get right controller input (using hand detection)
+     * Get right controller input (usually primary hand)
      */
     getRightController() {
-        // Try to get the actual right hand controller
-        const rightIndex = this.handToIndex.right;
-        if (rightIndex >= 0) {
-            return rightIndex === 0 ? this.inputState.controller0 : this.inputState.controller1;
-        }
-        // Fallback to controller0 if hand not detected
         return this.inputState.controller0;
     }
 
     /**
-     * Get left controller input (using hand detection)
+     * Get left controller input
      */
     getLeftController() {
-        // Try to get the actual left hand controller
-        const leftIndex = this.handToIndex.left;
-        if (leftIndex >= 0) {
-            return leftIndex === 0 ? this.inputState.controller0 : this.inputState.controller1;
-        }
-        // Fallback to controller1 if hand not detected
         return this.inputState.controller1;
     }
 

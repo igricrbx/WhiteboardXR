@@ -4,10 +4,9 @@ import * as THREE from 'three';
  * Manages smooth locomotion (movement and rotation) in VR
  */
 export class VRLocomotionManager {
-    constructor(dolly, scene, camera) {
+    constructor(dolly, scene) {
         this.dolly = dolly;
         this.scene = scene;
-        this.camera = camera; // VR camera for rotation center
         
         // Movement parameters
         this.moveSpeed = 2.0; // meters per second
@@ -37,7 +36,7 @@ export class VRLocomotionManager {
         const strafeInput = rightStick.x;
         
         // Left stick: rotation only (left/right on X)
-        const rotationInput = leftStick.x; // Positive = turn right, negative = turn left
+        const rotationInput = -leftStick.x; // Invert X for natural rotation
         
         // Calculate target velocities
         const targetForward = forwardInput * this.moveSpeed;
@@ -63,7 +62,12 @@ export class VRLocomotionManager {
             smoothFactor
         );
         
-        // Calculate movement in dolly's local space FIRST (before rotation)
+        // Apply rotation
+        if (Math.abs(this.currentRotationVelocity) > 0.001) {
+            this.dolly.rotation.y += this.currentRotationVelocity * deltaTime;
+        }
+        
+        // Calculate movement in dolly's local space
         if (this.currentVelocity.lengthSq() > 0.0001) {
             const movement = new THREE.Vector3();
             
@@ -83,26 +87,6 @@ export class VRLocomotionManager {
             
             // Apply movement
             this.dolly.position.add(movement);
-        }
-        
-        // Apply rotation around camera position (user's head) AFTER movement
-        if (Math.abs(this.currentRotationVelocity) > 0.001) {
-            const rotationAmount = this.currentRotationVelocity * deltaTime;
-            
-            // Get camera's world position before rotation
-            const cameraWorldPos = new THREE.Vector3();
-            this.camera.getWorldPosition(cameraWorldPos);
-            
-            // Rotate the dolly
-            this.dolly.rotation.y += rotationAmount;
-            
-            // Get camera's new world position after rotation
-            const newCameraWorldPos = new THREE.Vector3();
-            this.camera.getWorldPosition(newCameraWorldPos);
-            
-            // Calculate the offset and compensate
-            const offset = new THREE.Vector3().subVectors(cameraWorldPos, newCameraWorldPos);
-            this.dolly.position.add(offset);
         }
     }
 
