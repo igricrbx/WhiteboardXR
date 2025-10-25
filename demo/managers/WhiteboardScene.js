@@ -207,7 +207,7 @@ export class WhiteboardScene {
         if (!this.vrCamera) {
             const aspect = window.innerWidth / window.innerHeight;
             this.vrCamera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
-            this.vrCamera.position.set(0, 1.7, 2.0); // User spawn point (in front of whiteboard)
+            this.vrCamera.position.set(0, 1.7, -2.0); // User spawn point (2m back from whiteboard)
             this.vrCamera.lookAt(0, 1.5, 0); // Look at whiteboard center
         }
         
@@ -216,7 +216,7 @@ export class WhiteboardScene {
         
         // Position whiteboard vertically for VR
         this.whiteboard.position.set(0, 1.5, 0);
-        this.whiteboard.rotation.set(0, Math.PI, 0); // Rotate 180° to face the user
+        this.whiteboard.rotation.set(0, 0, 0); // Face forward (+Z direction)
         
         // Change background for VR
         this.scene.background = new THREE.Color(0x87CEEB); // Sky blue
