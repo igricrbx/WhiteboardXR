@@ -141,36 +141,5 @@ export class VRInputManager {
         return this.inputState.controller1;
     }
 
-    /**
-     * Log current input state (for debugging)
-     */
-    logInputState() {
-        console.log('Right controller (0):', {
-            thumbstick: this.inputState.controller0.thumbstick,
-            trigger: this.inputState.controller0.trigger.toFixed(2),
-            grip: this.inputState.controller0.grip,
-            buttons: this.inputState.controller0.buttons
-        });
-        console.log('Left controller (1):', {
-            thumbstick: this.inputState.controller1.thumbstick,
-            trigger: this.inputState.controller1.trigger.toFixed(2),
-            grip: this.inputState.controller1.grip,
-            buttons: this.inputState.controller1.buttons
-        });
-    }
 
-    /**
-     * Check if any thumbstick is being used
-     */
-    isThumbstickActive(threshold = 0.1) {
-        const right = this.inputState.controller0.thumbstick;
-        const left = this.inputState.controller1.thumbstick;
-        
-        return (
-            Math.abs(right.x) > threshold ||
-            Math.abs(right.y) > threshold ||
-            Math.abs(left.x) > threshold ||
-            Math.abs(left.y) > threshold
-        );
-    }
 }

@@ -12,6 +12,7 @@ import { ImageManager } from './managers/ImageManager.js';
 import { VRManager } from './managers/VRManager.js';
 import { VRButton } from './managers/VRButton.js';
 import { VRInputManager } from './managers/VRInputManager.js';
+import { VRLocomotionManager } from './managers/VRLocomotionManager.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -24,7 +25,9 @@ class WhiteboardDemo {
         
         this.vrManager = null;
         this.vrInputManager = null;
+        this.vrLocomotionManager = null;
         this.isVRMode = false;
+        this.lastFrameTime = 0;
         
         this.init();
         this.setupEventListeners();
@@ -119,6 +122,11 @@ class WhiteboardDemo {
         this.vrInputManager = new VRInputManager(this.vrManager);
         this.vrInputManager.setupControllers();
         
+        // Setup VR locomotion manager
+        const dolly = this.vrManager.getDolly();
+        this.vrLocomotionManager = new VRLocomotionManager(dolly, scene);
+        this.lastFrameTime = performance.now();
+        
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
         const scene = this.whiteboardScene.getScene();
@@ -136,13 +144,20 @@ class WhiteboardDemo {
     }
     
     updateVRFrame(frame) {
+        // Calculate delta time
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - this.lastFrameTime) / 1000; // Convert to seconds
+        this.lastFrameTime = currentTime;
+        
         // Update controller input state
         if (this.vrInputManager) {
             this.vrInputManager.update();
             
-            // Debug: Log input when thumbstick is active
-            if (this.vrInputManager.isThumbstickActive(0.3)) {
-                this.vrInputManager.logInputState();
+            // Apply locomotion based on controller input
+            if (this.vrLocomotionManager) {
+                const rightInput = this.vrInputManager.getRightController();
+                const leftInput = this.vrInputManager.getLeftController();
+                this.vrLocomotionManager.update(deltaTime, rightInput, leftInput);
             }
         }
     }
@@ -159,8 +174,10 @@ class WhiteboardDemo {
             this.inputManager.setDrawingEnabled(true);
         }
         
-        // Clean up VR input manager
+        // Clean up VR managers
         this.vrInputManager = null;
+        this.vrLocomotionManager = null;
+        this.lastFrameTime = 0;
         
         // Switch back to requestAnimationFrame
         const renderer = this.whiteboardScene.getRenderer();

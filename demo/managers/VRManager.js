@@ -214,6 +214,13 @@ export class VRManager {
     }
 
     /**
+     * Get the dolly (camera rig) object
+     */
+    getDolly() {
+        return this.renderer.xr.getCamera().parent || this.scene;
+    }
+
+    /**
      * Register callback for session start
      */
     onSessionStart(callback) {
