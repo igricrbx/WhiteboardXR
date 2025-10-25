@@ -11,6 +11,7 @@ import { UIController } from './managers/UIController.js';
 import { ImageManager } from './managers/ImageManager.js';
 import { VRManager } from './managers/VRManager.js';
 import { VRButton } from './managers/VRButton.js';
+import { VRLocomotionManager } from './managers/VRLocomotionManager.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -22,6 +23,7 @@ class WhiteboardDemo {
         this.fpsUpdateTime = 0;
         
         this.vrManager = null;
+        this.vrLocomotion = null;
         this.isVRMode = false;
         
         this.init();
@@ -104,24 +106,30 @@ class WhiteboardDemo {
         console.log('Entering VR mode');
         this.isVRMode = true;
         
-        // Switch scene to VR mode
+        // Switch scene to VR
         this.whiteboardScene.switchToVR();
         
         // Disable desktop input
         this.inputManager.setDrawingEnabled(false);
         
-        // Deselect all strokes (hide selection UI)
-        this.selectionManager.deselectAllStrokes();
-        
-        // Switch to XR animation loop
+        // Initialize locomotion
+        const scene = this.whiteboardScene.getScene();
         const renderer = this.whiteboardScene.getRenderer();
+        this.vrLocomotion = new VRLocomotionManager(renderer);
+        this.vrLocomotion.init(scene, session);
+        
+        // Set up XR animation loop
         renderer.setAnimationLoop((time, frame) => {
             if (frame) {
-                // VR mode - frame is XRFrame
-                // TODO: Update controllers and VR-specific logic here
+                // Update locomotion
+                const deltaTime = this.clock.getDelta();
+                this.vrLocomotion.update(deltaTime);
+                
+                // Regular render
+                const scene = this.whiteboardScene.getScene();
+                const camera = this.whiteboardScene.getCamera();
+                renderer.render(scene, camera);
             }
-            this.updateFPS();
-            renderer.render(this.whiteboardScene.getScene(), this.whiteboardScene.getCamera());
         });
     }
     
@@ -129,7 +137,13 @@ class WhiteboardDemo {
         console.log('Exiting VR mode');
         this.isVRMode = false;
         
-        // Switch scene back to desktop mode
+        // Clean up locomotion
+        if (this.vrLocomotion) {
+            this.vrLocomotion.dispose();
+            this.vrLocomotion = null;
+        }
+        
+        // Switch scene back to desktop
         this.whiteboardScene.switchToDesktop();
         
         // Re-enable desktop input if pen tool is selected
