@@ -82,7 +82,7 @@ export class VRManager {
 
             // Setup session event handlers
             session.addEventListener('end', () => {
-                this.onSessionEnd();
+                this.handleSessionEnd();
             });
 
             // Initialize controllers
@@ -120,7 +120,7 @@ export class VRManager {
     /**
      * Handle session end (called automatically by XR system)
      */
-    onSessionEnd() {
+    handleSessionEnd() {
         console.log('VR session ended event');
         
         this.isVRActive = false;
