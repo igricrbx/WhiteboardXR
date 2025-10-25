@@ -101,7 +101,7 @@ export class VRLocomotionManager {
             movement.add(cameraDirection.multiplyScalar(this.currentVelocity.z * deltaTime));
             
             // Strafe left/right relative to where user is looking
-            movement.add(cameraRight.multiplyScalar(-this.currentVelocity.x * deltaTime));
+            movement.add(cameraRight.multiplyScalar(this.currentVelocity.x * deltaTime));
             
             // Apply movement to dolly
             this.dolly.position.add(movement);
