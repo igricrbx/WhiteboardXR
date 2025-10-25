@@ -1,0 +1,18 @@
+{
+  "name": "vr-whiteboard-demo",
+  "version": "1.0.0",
+  "description": "Desktop demo for VR whiteboard stroke rendering",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "dev:https": "vite --host 0.0.0.0 --https",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "three": "^0.168.0"
+  }
+}
