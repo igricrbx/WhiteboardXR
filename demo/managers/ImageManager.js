@@ -83,14 +83,16 @@ export class ImageManager {
         const material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.DoubleSide,
-            transparent: true
+            transparent: true,
+            depthWrite: false,  // Disable depth writing for transparent materials
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1
         });
 
         // Create mesh
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.copy(position);
-        // Offset slightly in front of whiteboard to prevent z-fighting
-        mesh.position.z += 0.001;
 
         // Add to scene
         this.parent.add(mesh);

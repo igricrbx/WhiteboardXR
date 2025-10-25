@@ -75,8 +75,6 @@ export class ChunkedBezierStrokeManager {
                     width
                 );
                 if (chunkMesh) {
-                    // Offset slightly in front of whiteboard to prevent z-fighting
-                    chunkMesh.position.z = 0.001;
                     this.parent.add(chunkMesh);
                     stroke.meshes.push(chunkMesh);
                     stroke.segmentCount += chunkSegments.length;
@@ -221,10 +219,12 @@ export class ChunkedBezierStrokeManager {
             vertexShader: strokeVertexShader,
             fragmentShader: strokeFragmentShader,
             side: THREE.DoubleSide,
-            transparent: true,  // Enable transparency so Three.js respects renderOrder
-            opacity: 1.0,       // Fully opaque, but allows renderOrder sorting
-            depthWrite: true,
-            depthTest: true
+            transparent: true,
+            depthWrite: false,  // Disable depth writing for transparent objects
+            depthTest: true,
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1
         });
     }
 
