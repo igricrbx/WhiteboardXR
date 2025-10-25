@@ -207,7 +207,7 @@ export class WhiteboardScene {
         if (!this.vrCamera) {
             const aspect = window.innerWidth / window.innerHeight;
             this.vrCamera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
-            this.vrCamera.position.set(0, 1.7, -2.0); // User spawn point (2m back from whiteboard)
+            this.vrCamera.position.set(0, 1.7, -3.5); // User spawn point (3.5m back from whiteboard)
             this.vrCamera.lookAt(0, 1.5, 0); // Look at whiteboard center
         }
         
