@@ -13,6 +13,8 @@ export class WhiteboardScene {
         this.vrCamera = null; // Store VR camera
         this.renderer = null;
         this.whiteboard = null;
+        this.floor = null;
+        this.skybox = null;
         this.isVRMode = false;
         
         this.init();
@@ -60,6 +62,12 @@ export class WhiteboardScene {
         this.whiteboard = new THREE.Mesh(whiteboardGeometry, whiteboardMaterial);
         this.scene.add(this.whiteboard);
 
+        // Create floor plane for VR spatial reference
+        this.createFloor();
+        
+        // Create skybox for VR
+        this.createSkybox();
+
         // Setup resize handler
         window.addEventListener('resize', () => this.onWindowResize(), false);
     }
@@ -98,6 +106,97 @@ export class WhiteboardScene {
     }
     
     /**
+     * Create floor plane with grid texture
+     */
+    createFloor() {
+        const floorGeometry = new THREE.PlaneGeometry(10, 10);
+        
+        // Create grid texture
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw grid
+        ctx.fillStyle = '#cccccc';
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.strokeStyle = '#999999';
+        ctx.lineWidth = 1;
+        
+        // Draw grid lines
+        const gridSize = 64;
+        for (let i = 0; i <= 512; i += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, 512);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(512, i);
+            ctx.stroke();
+        }
+        
+        const gridTexture = new THREE.CanvasTexture(canvas);
+        gridTexture.wrapS = THREE.RepeatWrapping;
+        gridTexture.wrapT = THREE.RepeatWrapping;
+        gridTexture.repeat.set(5, 5);
+        
+        const floorMaterial = new THREE.MeshBasicMaterial({
+            map: gridTexture,
+            side: THREE.FrontSide
+        });
+        
+        this.floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        this.floor.rotation.x = -Math.PI / 2; // Make horizontal
+        this.floor.position.y = 0;
+        this.floor.visible = false; // Hidden in desktop mode
+        this.scene.add(this.floor);
+    }
+    
+    /**
+     * Create skybox for VR environment
+     */
+    createSkybox() {
+        // Simple gradient sky dome
+        const skyGeometry = new THREE.SphereGeometry(50, 32, 32);
+        
+        // Create gradient material
+        const skyMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                topColor: { value: new THREE.Color(0x0077ff) },
+                bottomColor: { value: new THREE.Color(0xffffff) },
+                offset: { value: 10 },
+                exponent: { value: 0.6 }
+            },
+            vertexShader: `
+                varying vec3 vWorldPosition;
+                void main() {
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 topColor;
+                uniform vec3 bottomColor;
+                uniform float offset;
+                uniform float exponent;
+                varying vec3 vWorldPosition;
+                void main() {
+                    float h = normalize(vWorldPosition + offset).y;
+                    gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+                }
+            `,
+            side: THREE.BackSide
+        });
+        
+        this.skybox = new THREE.Mesh(skyGeometry, skyMaterial);
+        this.skybox.visible = false; // Hidden in desktop mode
+        this.scene.add(this.skybox);
+    }
+    
+    /**
      * Switch to VR mode
      */
     switchToVR() {
@@ -122,6 +221,10 @@ export class WhiteboardScene {
         // Change background for VR
         this.scene.background = new THREE.Color(0x87CEEB); // Sky blue
         
+        // Show floor and skybox in VR
+        if (this.floor) this.floor.visible = true;
+        if (this.skybox) this.skybox.visible = true;
+        
         console.log('VR mode active');
     }
     
@@ -143,6 +246,10 @@ export class WhiteboardScene {
         
         // Restore desktop background
         this.scene.background = new THREE.Color(0xf5f5f5);
+        
+        // Hide floor and skybox in desktop mode
+        if (this.floor) this.floor.visible = false;
+        if (this.skybox) this.skybox.visible = false;
         
         console.log('Desktop mode active');
     }
