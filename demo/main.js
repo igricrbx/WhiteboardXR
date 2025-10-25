@@ -126,7 +126,7 @@ class WhiteboardDemo {
         
         // Get scene and camera for locomotion manager
         const scene = this.whiteboardScene.getScene();
-        const camera = this.whiteboardScene.getVRCamera();
+        const camera = this.whiteboardScene.getCamera();
         
         // Setup VR locomotion manager
         const dolly = this.vrManager.getDolly();
