@@ -67,25 +67,26 @@ export class VRLocomotionManager {
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
             const rotationAmount = this.currentRotationVelocity * deltaTime;
             
-            // Get camera position in world space
-            const cameraWorldPos = new THREE.Vector3();
-            this.camera.getWorldPosition(cameraWorldPos);
+            // Get camera's local position within the dolly (offset from dolly center)
+            const cameraLocalPos = new THREE.Vector3();
+            this.dolly.worldToLocal(cameraLocalPos.copy(this.camera.position));
             
-            // Store camera position relative to dolly before rotation
-            const cameraToDolly = new THREE.Vector3();
-            cameraToDolly.copy(this.dolly.position).sub(cameraWorldPos);
+            // Rotate the offset point around Y axis
+            const rotatedOffset = new THREE.Vector3(
+                cameraLocalPos.x * Math.cos(rotationAmount) - cameraLocalPos.z * Math.sin(rotationAmount),
+                cameraLocalPos.y,
+                cameraLocalPos.x * Math.sin(rotationAmount) + cameraLocalPos.z * Math.cos(rotationAmount)
+            );
             
-            // Rotate the dolly
+            // Calculate the difference in offset
+            const offsetDelta = new THREE.Vector3().subVectors(cameraLocalPos, rotatedOffset);
+            
+            // Apply rotation to dolly
             this.dolly.rotation.y += rotationAmount;
             
-            // Calculate new camera world position after rotation
-            const newCameraWorldPos = new THREE.Vector3();
-            this.camera.getWorldPosition(newCameraWorldPos);
-            
-            // Adjust dolly position to keep camera at original world position
-            const offset = new THREE.Vector3();
-            offset.copy(cameraWorldPos).sub(newCameraWorldPos);
-            this.dolly.position.add(offset);
+            // Move dolly to compensate for the rotation so camera stays in same world position
+            const worldOffsetDelta = offsetDelta.applyQuaternion(this.dolly.quaternion);
+            this.dolly.position.add(worldOffsetDelta);
         }
         
         // Calculate movement in dolly's local space
