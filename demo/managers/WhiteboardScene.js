@@ -216,7 +216,7 @@ export class WhiteboardScene {
         
         // Position whiteboard vertically for VR
         this.whiteboard.position.set(0, 1.5, 0);
-        this.whiteboard.rotation.set(0, 0, 0);
+        this.whiteboard.rotation.set(0, Math.PI, 0); // Rotate 180° to face the user
         
         // Change background for VR
         this.scene.background = new THREE.Color(0x87CEEB); // Sky blue
