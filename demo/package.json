@@ -4,7 +4,7 @@
   "description": "Desktop demo for VR whiteboard stroke rendering",
   "type": "module",
   "scripts": {
-    "dev": "node --no-experimental-websocket ./node_modules/vite/bin/vite.js --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0",
     "dev:https": "vite --host 0.0.0.0 --https",
     "build": "vite build",
     "preview": "vite preview"
