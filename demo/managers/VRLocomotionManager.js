@@ -4,9 +4,10 @@ import * as THREE from 'three';
  * Manages smooth locomotion (movement and rotation) in VR
  */
 export class VRLocomotionManager {
-    constructor(dolly, scene) {
+    constructor(dolly, scene, camera) {
         this.dolly = dolly;
         this.scene = scene;
+        this.camera = camera;
         
         // Movement parameters
         this.moveSpeed = 2.0; // meters per second
@@ -81,25 +82,28 @@ export class VRLocomotionManager {
             this.dolly.position.copy(dollyPos);
         }
         
-        // Calculate movement in dolly's local space
+        // Calculate movement based on camera's actual facing direction
         if (this.currentVelocity.lengthSq() > 0.0001) {
             const movement = new THREE.Vector3();
             
-            // Forward/backward relative to dolly's facing direction
-            const forward = new THREE.Vector3(0, 0, 1);
-            forward.applyQuaternion(this.dolly.quaternion);
-            forward.y = 0; // Keep movement horizontal
-            forward.normalize();
-            movement.add(forward.multiplyScalar(this.currentVelocity.z * deltaTime));
+            // Get camera's forward direction (where user is looking)
+            const cameraDirection = new THREE.Vector3();
+            this.camera.getWorldDirection(cameraDirection);
+            cameraDirection.y = 0; // Keep movement horizontal
+            cameraDirection.normalize();
             
-            // Strafe left/right relative to dolly's facing direction
-            const right = new THREE.Vector3(1, 0, 0);
-            right.applyQuaternion(this.dolly.quaternion);
-            right.y = 0; // Keep movement horizontal
-            right.normalize();
-            movement.add(right.multiplyScalar(this.currentVelocity.x * deltaTime));
+            // Get camera's right direction
+            const cameraRight = new THREE.Vector3();
+            cameraRight.crossVectors(new THREE.Vector3(0, 1, 0), cameraDirection);
+            cameraRight.normalize();
             
-            // Apply movement
+            // Forward/backward relative to where user is looking
+            movement.add(cameraDirection.multiplyScalar(this.currentVelocity.z * deltaTime));
+            
+            // Strafe left/right relative to where user is looking
+            movement.add(cameraRight.multiplyScalar(-this.currentVelocity.x * deltaTime));
+            
+            // Apply movement to dolly
             this.dolly.position.add(movement);
         }
     }
