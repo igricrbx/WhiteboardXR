@@ -67,26 +67,23 @@ export class VRLocomotionManager {
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
             const rotationAmount = this.currentRotationVelocity * deltaTime;
             
-            // Get camera's local position within the dolly (offset from dolly center)
+            // Get camera's position relative to dolly (in dolly's local space)
             const cameraLocalPos = new THREE.Vector3();
             this.dolly.worldToLocal(cameraLocalPos.copy(this.camera.position));
             
-            // Rotate the offset point around Y axis
-            const rotatedOffset = new THREE.Vector3(
-                cameraLocalPos.x * Math.cos(rotationAmount) - cameraLocalPos.z * Math.sin(rotationAmount),
-                cameraLocalPos.y,
-                cameraLocalPos.x * Math.sin(rotationAmount) + cameraLocalPos.z * Math.cos(rotationAmount)
-            );
+            // Translate dolly so camera is at origin
+            const dollyOffset = new THREE.Vector3();
+            dollyOffset.copy(cameraLocalPos);
+            dollyOffset.applyQuaternion(this.dolly.quaternion);
+            this.dolly.position.sub(dollyOffset);
             
-            // Calculate the difference in offset
-            const offsetDelta = new THREE.Vector3().subVectors(cameraLocalPos, rotatedOffset);
-            
-            // Apply rotation to dolly
+            // Rotate dolly (now camera is at the pivot)
             this.dolly.rotation.y += rotationAmount;
             
-            // Move dolly to compensate for the rotation so camera stays in same world position
-            const worldOffsetDelta = offsetDelta.applyQuaternion(this.dolly.quaternion);
-            this.dolly.position.add(worldOffsetDelta);
+            // Translate back
+            dollyOffset.set(cameraLocalPos.x, cameraLocalPos.y, cameraLocalPos.z);
+            dollyOffset.applyQuaternion(this.dolly.quaternion);
+            this.dolly.position.add(dollyOffset);
         }
         
         // Calculate movement in dolly's local space
