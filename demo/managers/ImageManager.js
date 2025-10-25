@@ -89,6 +89,8 @@ export class ImageManager {
         // Create mesh
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.copy(position);
+        // Offset slightly in front of whiteboard to prevent z-fighting
+        mesh.position.z += 0.001;
 
         // Add to scene
         this.parent.add(mesh);

@@ -75,6 +75,8 @@ export class ChunkedBezierStrokeManager {
                     width
                 );
                 if (chunkMesh) {
+                    // Offset slightly in front of whiteboard to prevent z-fighting
+                    chunkMesh.position.z = 0.001;
                     this.parent.add(chunkMesh);
                     stroke.meshes.push(chunkMesh);
                     stroke.segmentCount += chunkSegments.length;
