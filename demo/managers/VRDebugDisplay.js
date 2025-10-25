@@ -35,7 +35,7 @@ export class VRDebugDisplay {
         // Create canvas for text rendering
         this.canvas = document.createElement('canvas');
         this.canvas.width = 2048;
-        this.canvas.height = 1536;
+        this.canvas.height = 2560; // Increased to match taller panel (3.0 / 2.5 ratio)
         this.ctx = this.canvas.getContext('2d');
         
         // Create texture from canvas
@@ -106,10 +106,10 @@ export class VRDebugDisplay {
         
         // Set text style
         ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 64px monospace';
+        ctx.font = 'bold 48px monospace';
         
-        let y = 100;
-        const lineHeight = 90;
+        let y = 80;
+        const lineHeight = 70;
         
         // Helper to format numbers
         const fmt = (n) => n.toFixed(3);

@@ -67,28 +67,20 @@ export class VRLocomotionManager {
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
             const rotationAmount = this.currentRotationVelocity * deltaTime;
             
-            // Get camera's world position
+            // Get camera's world position before rotation
             const cameraWorldPos = new THREE.Vector3();
             this.camera.getWorldPosition(cameraWorldPos);
             
-            // Convert to dolly's local space
-            const cameraLocalPos = new THREE.Vector3();
-            cameraLocalPos.copy(cameraWorldPos);
-            this.dolly.worldToLocal(cameraLocalPos);
-            
-            // Translate dolly so camera is at origin
-            const dollyOffset = new THREE.Vector3();
-            dollyOffset.copy(cameraLocalPos);
-            dollyOffset.applyQuaternion(this.dolly.quaternion);
-            this.dolly.position.sub(dollyOffset);
-            
-            // Rotate dolly (now camera is at the pivot)
+            // Rotate the dolly
             this.dolly.rotation.y += rotationAmount;
             
-            // Translate back
-            dollyOffset.set(cameraLocalPos.x, cameraLocalPos.y, cameraLocalPos.z);
-            dollyOffset.applyQuaternion(this.dolly.quaternion);
-            this.dolly.position.add(dollyOffset);
+            // Get camera's new world position after rotation
+            const newCameraWorldPos = new THREE.Vector3();
+            this.camera.getWorldPosition(newCameraWorldPos);
+            
+            // Calculate the offset and compensate
+            const offset = new THREE.Vector3().subVectors(cameraWorldPos, newCameraWorldPos);
+            this.dolly.position.add(offset);
         }
         
         // Calculate movement in dolly's local space
