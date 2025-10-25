@@ -12,9 +12,9 @@ export class VRManager {
         this.xrSession = null;
         this.isVRActive = false;
         
-        // Callbacks
-        this.onSessionStartCallback = null;
-        this.onSessionEndCallback = null;
+        // Callbacks (support multiple)
+        this.onSessionStartCallbacks = [];
+        this.onSessionEndCallbacks = [];
         
         // Controller references
         this.controllers = [];
@@ -88,10 +88,8 @@ export class VRManager {
             // Initialize controllers
             this.setupControllers();
 
-            // Trigger start callback
-            if (this.onSessionStartCallback) {
-                this.onSessionStartCallback(session);
-            }
+            // Trigger start callbacks
+            this.onSessionStartCallbacks.forEach(callback => callback(session));
 
             return session;
         } catch (error) {
@@ -129,10 +127,8 @@ export class VRManager {
         // Clean up controllers
         this.cleanupControllers();
 
-        // Trigger end callback
-        if (this.onSessionEndCallback) {
-            this.onSessionEndCallback();
-        }
+        // Trigger end callbacks
+        this.onSessionEndCallbacks.forEach(callback => callback());
     }
 
     /**
@@ -221,13 +217,13 @@ export class VRManager {
      * Register callback for session start
      */
     onSessionStart(callback) {
-        this.onSessionStartCallback = callback;
+        this.onSessionStartCallbacks.push(callback);
     }
 
     /**
-     * Register callback for session end
+     * Register callback for session end  
      */
     onSessionEnd(callback) {
-        this.onSessionEndCallback = callback;
+        this.onSessionEndCallbacks.push(callback);
     }
 }
