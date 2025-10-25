@@ -1,2 +1,6 @@
 demo/node_modules/
 docs/
+
+# SSL certificates for local HTTPS development
+certs/
+*.pem

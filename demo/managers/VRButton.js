@@ -69,41 +69,11 @@ export class VRButton {
             button.disabled = false;
             button.style.backgroundColor = '#1a73e8';
             button.style.cursor = 'pointer';
-            button.title = 'Click to enter VR mode';
-            console.log('✓ VR Button: Ready to enter VR');
         } else {
-            button.textContent = 'VR NOT AVAILABLE';
+            button.textContent = 'VR NOT SUPPORTED';
             button.disabled = true;
             button.style.backgroundColor = '#666666';
             button.style.cursor = 'not-allowed';
-            
-            // Add detailed tooltip
-            const isSecure = window.isSecureContext;
-            const protocol = window.location.protocol;
-            
-            let tooltip = 'WebXR not available\n\n';
-            if (!isSecure || protocol !== 'https:') {
-                tooltip += '⚠️ HTTPS REQUIRED\n';
-                tooltip += 'Current: ' + protocol + '\n\n';
-                tooltip += 'Solution:\n';
-                tooltip += '1. Stop server (Ctrl+C)\n';
-                tooltip += '2. Run: npm run dev -- --host --https\n';
-                tooltip += '3. Accept certificate warning\n';
-                tooltip += '4. Connect Quest Link/Air Link\n';
-            } else {
-                tooltip += 'Checklist:\n';
-                tooltip += '✓ HTTPS: Yes\n';
-                tooltip += '• Quest Link/Air Link active?\n';
-                tooltip += '• Using Chrome/Edge browser?\n';
-                tooltip += '• SteamVR running (if using Link)?\n';
-            }
-            
-            button.title = tooltip;
-            
-            console.error('✗ VR not available');
-            console.error('  - Secure context:', isSecure);
-            console.error('  - Protocol:', protocol);
-            console.error('  - URL:', window.location.href);
         }
     }
 

@@ -45,13 +45,7 @@ export class VRManager {
             if (supported) {
                 console.log('VR (immersive-vr) is supported');
             } else {
-                console.warn('VR (immersive-vr) is not supported');
-                console.warn('Possible reasons:');
-                console.warn('1. Page must be served over HTTPS (not HTTP)');
-                console.warn('2. Quest Link/Air Link must be active');
-                console.warn('3. Browser must be Chrome, Edge, or Firefox Reality');
-                console.warn('4. Current URL:', window.location.href);
-                console.warn('5. Is secure context:', window.isSecureContext);
+                console.log('VR (immersive-vr) is not supported');
             }
             return supported;
         } catch (error) {
