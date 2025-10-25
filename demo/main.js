@@ -122,6 +122,9 @@ class WhiteboardDemo {
         this.vrInputManager = new VRInputManager(this.vrManager);
         this.vrInputManager.setupControllers();
         
+        // Get scene for locomotion manager
+        const scene = this.whiteboardScene.getScene();
+        
         // Setup VR locomotion manager
         const dolly = this.vrManager.getDolly();
         this.vrLocomotionManager = new VRLocomotionManager(dolly, scene);
@@ -129,7 +132,6 @@ class WhiteboardDemo {
         
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
-        const scene = this.whiteboardScene.getScene();
         const camera = this.whiteboardScene.getCamera();
         
         renderer.setAnimationLoop((time, frame) => {
