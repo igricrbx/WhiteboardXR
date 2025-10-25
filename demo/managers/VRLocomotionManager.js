@@ -62,9 +62,23 @@ export class VRLocomotionManager {
             smoothFactor
         );
         
-        // Apply rotation
+        // Apply rotation around the user's position (origin in VR space)
         if (Math.abs(this.currentRotationVelocity) > 0.001) {
-            this.dolly.rotation.y += this.currentRotationVelocity * deltaTime;
+            const rotationAmount = this.currentRotationVelocity * deltaTime;
+            
+            // Store current dolly position
+            const dollyPos = this.dolly.position.clone();
+            
+            // Rotate the dolly around the Y axis
+            this.dolly.rotation.y += rotationAmount;
+            
+            // Rotate the dolly's position around the origin (user's feet)
+            // This prevents the world from rotating around the dolly's position
+            const rotationMatrix = new THREE.Matrix4();
+            rotationMatrix.makeRotationY(rotationAmount);
+            dollyPos.applyMatrix4(rotationMatrix);
+            
+            this.dolly.position.copy(dollyPos);
         }
         
         // Calculate movement in dolly's local space
