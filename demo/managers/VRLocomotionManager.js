@@ -31,18 +31,16 @@ export class VRLocomotionManager {
         const rightStick = rightInput.thumbstick;
         const leftStick = leftInput.thumbstick;
         
-        // Right stick: forward/backward (Y) and rotation (X)
-        const forwardInput = -rightStick.y; // Invert Y (pushing forward is negative)
-        const rotationInput = -rightStick.x; // Invert X for natural rotation
+        // Right stick: movement only (forward/backward on Y, strafe left/right on X)
+        const forwardInput = rightStick.y; // Don't invert - positive = forward
+        const strafeInput = rightStick.x;
         
-        // Left stick: strafe left/right (X) and forward/backward (Y)
-        const strafeInput = leftStick.x;
-        const strafeForwardInput = -leftStick.y;
+        // Left stick: rotation only (left/right on X)
+        const rotationInput = -leftStick.x; // Invert X for natural rotation
         
         // Calculate target velocities
         const targetForward = forwardInput * this.moveSpeed;
         const targetStrafe = strafeInput * this.moveSpeed;
-        const targetStrafeForward = strafeForwardInput * this.moveSpeed;
         const targetRotation = rotationInput * this.rotationSpeed;
         
         // Apply smoothing to velocities
@@ -50,12 +48,12 @@ export class VRLocomotionManager {
         
         this.currentVelocity.x = THREE.MathUtils.lerp(
             this.currentVelocity.x,
-            targetStrafe + targetStrafeForward * 0, // Just strafe for now
+            targetStrafe,
             smoothFactor
         );
         this.currentVelocity.z = THREE.MathUtils.lerp(
             this.currentVelocity.z,
-            targetForward + targetStrafeForward,
+            targetForward,
             smoothFactor
         );
         this.currentRotationVelocity = THREE.MathUtils.lerp(
