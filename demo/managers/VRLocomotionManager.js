@@ -18,9 +18,9 @@ export class VRLocomotionManager {
         this.rightController = null;
         this.leftController = null;
         
-        // Movement state
-        this.dolly = new THREE.Group(); // Container for user movement
-        this.dolly.position.set(0, 0, 0);
+        // User position and rotation (accumulated offsets)
+        this.position = new THREE.Vector3(0, 0, 0);
+        this.rotation = 0; // Y-axis rotation in radians
     }
     
     /**
@@ -42,13 +42,7 @@ export class VRLocomotionManager {
      */
     init(scene, xrSession) {
         this.xrSession = xrSession;
-        
-        // Add dolly to scene
-        scene.add(this.dolly);
-        
-        // Add camera to dolly so locomotion moves the user
-        const camera = this.renderer.xr.getCamera();
-        // Note: XR camera is already in the scene, we move using reference space
+        this.scene = scene;
         
         // Get controllers
         this.rightController = this.renderer.xr.getController(0);
@@ -121,73 +115,101 @@ export class VRLocomotionManager {
      * Move forward/backward relative to current rotation
      */
     moveForward(distance) {
-        const camera = this.renderer.xr.getCamera();
+        // Calculate forward direction based on current rotation
+        const forward = new THREE.Vector3(
+            -Math.sin(this.rotation),  // Negative because we move scene opposite to user
+            0,
+            -Math.cos(this.rotation)
+        );
         
-        // Get forward direction from camera (ignoring Y axis)
-        const forward = new THREE.Vector3();
-        camera.getWorldDirection(forward);
-        forward.y = 0; // Keep movement horizontal
-        forward.normalize();
-        
-        // Move the reference space
-        const offset = forward.multiplyScalar(distance);
-        this.dolly.position.add(offset);
+        // Move all scene objects (opposite to user movement)
+        this.scene.children.forEach(child => {
+            if (child !== this.rightController && child !== this.leftController) {
+                child.position.x += forward.x * distance;
+                child.position.z += forward.z * distance;
+            }
+        });
     }
     
     /**
      * Strafe left/right relative to current rotation
      */
     strafe(distance) {
-        const camera = this.renderer.xr.getCamera();
+        // Calculate right direction (perpendicular to forward)
+        const right = new THREE.Vector3(
+            -Math.cos(this.rotation),  // Negative because we move scene opposite to user
+            0,
+            Math.sin(this.rotation)
+        );
         
-        // Get right direction from camera
-        const right = new THREE.Vector3();
-        camera.getWorldDirection(right);
-        right.y = 0;
-        right.normalize();
-        right.cross(new THREE.Vector3(0, 1, 0)); // Cross with up to get right
-        
-        // Move the reference space
-        const offset = right.multiplyScalar(distance);
-        this.dolly.position.add(offset);
+        // Move all scene objects (opposite to user movement)
+        this.scene.children.forEach(child => {
+            if (child !== this.rightController && child !== this.leftController) {
+                child.position.x += right.x * distance;
+                child.position.z += right.z * distance;
+            }
+        });
     }
     
     /**
      * Rotate around Y axis
      */
     rotate(angle) {
-        this.dolly.rotation.y -= angle;
+        this.rotation -= angle;
+        
+        // Rotate all scene objects around the origin
+        this.scene.children.forEach(child => {
+            if (child !== this.rightController && child !== this.leftController) {
+                // Rotate position around origin
+                const x = child.position.x;
+                const z = child.position.z;
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                child.position.x = x * cos + z * sin;
+                child.position.z = -x * sin + z * cos;
+                
+                // Rotate the object itself
+                child.rotation.y += angle;
+            }
+        });
+    }
+    
+    /**
+     * Get transform matrix for XR reference space
+     */
+    getTransform() {
+        const matrix = new THREE.Matrix4();
+        matrix.makeRotationY(this.rotation);
+        matrix.setPosition(this.position);
+        return matrix;
     }
     
     /**
      * Teleport to specific position
      */
     teleportTo(position) {
-        this.dolly.position.copy(position);
+        this.position.copy(position);
     }
     
     /**
      * Reset to origin
      */
     resetPosition() {
-        this.dolly.position.set(0, 0, 0);
-        this.dolly.rotation.set(0, 0, 0);
+        this.position.set(0, 0, 0);
+        this.rotation = 0;
     }
     
     /**
      * Get current position
      */
     getPosition() {
-        return this.dolly.position.clone();
+        return this.position.clone();
     }
     
     /**
      * Clean up
      */
     dispose() {
-        if (this.dolly && this.dolly.parent) {
-            this.dolly.parent.remove(this.dolly);
-        }
         this.xrSession = null;
         this.rightController = null;
         this.leftController = null;
