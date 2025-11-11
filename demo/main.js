@@ -14,8 +14,6 @@ import { VRButton } from './managers/VRButton.js';
 import { VRInputManager } from './managers/VRInputManager.js';
 import { VRLocomotionManager } from './managers/VRLocomotionManager.js';
 import { VRDebugDisplay } from './managers/VRDebugDisplay.js';
-import { VRPenController } from './managers/VRPenController.js';
-import { VRDrawingManager } from './managers/VRDrawingManager.js';
 
 class WhiteboardDemo {
     constructor() {
@@ -30,8 +28,6 @@ class WhiteboardDemo {
         this.vrInputManager = null;
         this.vrLocomotionManager = null;
         this.vrDebugDisplay = null;
-        this.vrPenController = null;
-        this.vrDrawingManager = null;
         this.isVRMode = false;
         this.lastFrameTime = 0;
         
@@ -141,15 +137,6 @@ class WhiteboardDemo {
         this.vrDebugDisplay = new VRDebugDisplay(scene);
         this.vrDebugDisplay.show();
         
-        // Create VR pen controller
-        const whiteboard = this.whiteboardScene.getWhiteboard();
-        this.vrPenController = new VRPenController(scene, whiteboard, this.vrInputManager);
-        this.vrPenController.show();
-        
-        // Create VR drawing manager
-        this.vrDrawingManager = new VRDrawingManager(this.vrPenController, this.strokeRenderer, whiteboard);
-        this.setupVRDrawingCallbacks();
-        
         // Switch to XR animation loop
         const renderer = this.whiteboardScene.getRenderer();
         
@@ -180,17 +167,6 @@ class WhiteboardDemo {
                 const leftInput = this.vrInputManager.getLeftController();
                 this.vrLocomotionManager.update(deltaTime, rightInput, leftInput);
             }
-            
-            // Update pen controller
-            if (this.vrPenController) {
-                const controllerGrips = this.vrManager.getControllerGrips();
-                this.vrPenController.update(controllerGrips, deltaTime);
-            }
-            
-            // Update drawing manager
-            if (this.vrDrawingManager) {
-                this.vrDrawingManager.update(deltaTime);
-            }
         }
         
         // Update debug display
@@ -219,18 +195,6 @@ class WhiteboardDemo {
     exitVRMode() {
         console.log('Exiting VR mode');
         this.isVRMode = false;
-        
-        // Clean up VR drawing manager
-        if (this.vrDrawingManager) {
-            this.vrDrawingManager.dispose();
-            this.vrDrawingManager = null;
-        }
-        
-        // Clean up VR pen controller
-        if (this.vrPenController) {
-            this.vrPenController.dispose();
-            this.vrPenController = null;
-        }
         
         // Switch scene back to desktop mode
         this.whiteboardScene.switchToDesktop();
@@ -335,41 +299,6 @@ class WhiteboardDemo {
         this.inputManager.onCameraUpdate = () => {
             // Called when camera is updated via zoom/pan
         };
-    }
-
-    setupVRDrawingCallbacks() {
-        // VR drawing callbacks - reuse the same stroke creation logic as desktop
-        this.vrDrawingManager.onDrawStart((point) => {
-            // Draw start is handled by VRDrawingManager -> StrokeRenderer
-            console.log('VR draw start');
-        });
-
-        this.vrDrawingManager.onDrawMove((point) => {
-            // Draw move is handled by VRDrawingManager -> StrokeRenderer
-        });
-
-        this.vrDrawingManager.onDrawEnd((points) => {
-            // Same stroke finalization logic as desktop
-            if (points && points.length >= 4) {
-                const simplifiedPoints = this.filterDensePoints(points, 0.005);
-                
-                console.log(`VR stroke: ${points.length} → ${simplifiedPoints.length} points`);
-
-                const penSettings = this.uiController.getPenSettings();
-                const bezierStroke = this.strokeManager.createStroke(simplifiedPoints, {
-                    width: penSettings.width,
-                    color: penSettings.color,
-                    debugMode: penSettings.debugMode
-                });
-                
-                if (bezierStroke) {
-                    this.updateContentCount();
-                    
-                    const chunkStats = this.chunkedBezierManager.getStats(bezierStroke);
-                    console.log(`VR chunking: ${chunkStats.totalPoints} points → ${chunkStats.chunkCount} chunks, ${chunkStats.totalSegments} segments`);
-                }
-            }
-        });
     }
 
     setupEventListeners() {
