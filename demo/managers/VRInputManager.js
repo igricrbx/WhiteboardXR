@@ -27,6 +27,9 @@ export class VRInputManager {
                 buttons: { x: false, y: false }
             }
         };
+        
+        // Automatically setup listeners when created
+        this.setupControllers();
     }
 
     /**
@@ -98,7 +101,10 @@ export class VRInputManager {
      */
     update() {
         const session = this.vrManager.getCurrentSession();
-        if (!session || !session.inputSources) return;
+        if (!session || !session.inputSources) {
+            console.warn('VRInputManager.update: No session or inputSources');
+            return;
+        }
         
         // Reset thumbstick states first
         this.inputState.left.thumbstick.x = 0;
@@ -126,10 +132,20 @@ export class VRInputManager {
             if (gamepad.axes && gamepad.axes.length >= 4) {
                 state.thumbstick.x = gamepad.axes[2];
                 state.thumbstick.y = gamepad.axes[3];
+                
+                // Log non-zero thumbstick values for debugging
+                if (Math.abs(state.thumbstick.x) > 0.1 || Math.abs(state.thumbstick.y) > 0.1) {
+                    console.log(`${hand} thumbstick: ${state.thumbstick.x.toFixed(2)}, ${state.thumbstick.y.toFixed(2)}`);
+                }
             } else if (gamepad.axes && gamepad.axes.length >= 2) {
                 // Fallback for other controllers
                 state.thumbstick.x = gamepad.axes[0];
                 state.thumbstick.y = gamepad.axes[1];
+                
+                // Log for debugging
+                if (Math.abs(state.thumbstick.x) > 0.1 || Math.abs(state.thumbstick.y) > 0.1) {
+                    console.log(`${hand} thumbstick (fallback): ${state.thumbstick.x.toFixed(2)}, ${state.thumbstick.y.toFixed(2)}`);
+                }
             }
             
             // Read trigger (button 0)

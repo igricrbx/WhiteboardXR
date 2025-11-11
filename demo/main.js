@@ -120,9 +120,8 @@ class WhiteboardDemo {
         // Deselect all strokes (hide selection UI)
         this.selectionManager.deselectAllStrokes();
         
-        // Setup VR input manager
+        // Setup VR input manager (controllers already set up in VRManager constructor)
         this.vrInputManager = new VRInputManager(this.vrManager);
-        this.vrInputManager.setupControllers();
         
         // Get scene and camera for locomotion manager
         const scene = this.whiteboardScene.getScene();
@@ -173,6 +172,8 @@ class WhiteboardDemo {
         if (this.vrDebugDisplay) {
             const camera = this.whiteboardScene.getCamera();
             const dolly = this.vrManager.getDolly();
+            const rightInput = this.vrInputManager.getRightController();
+            const leftInput = this.vrInputManager.getLeftController();
             
             this.vrDebugDisplay.setDebugData({
                 'Camera Pos': camera.position,
@@ -187,6 +188,8 @@ class WhiteboardDemo {
                     y: dolly.rotation.y * (180 / Math.PI),
                     z: dolly.rotation.z * (180 / Math.PI)
                 },
+                'Right Stick': `${rightInput.thumbstick.x.toFixed(2)}, ${rightInput.thumbstick.y.toFixed(2)}`,
+                'Left Stick': `${leftInput.thumbstick.x.toFixed(2)}, ${leftInput.thumbstick.y.toFixed(2)}`,
                 'FPS': Math.round(1 / deltaTime)
             });
         }
