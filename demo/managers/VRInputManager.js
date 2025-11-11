@@ -100,15 +100,14 @@ export class VRInputManager {
         const session = this.vrManager.getCurrentSession();
         if (!session || !session.inputSources) return;
         
-        // Reset states first
+        // Reset thumbstick states first
         this.inputState.left.thumbstick.x = 0;
         this.inputState.left.thumbstick.y = 0;
         this.inputState.right.thumbstick.x = 0;
         this.inputState.right.thumbstick.y = 0;
         
-        // Iterate through all input sources and update based on hand
-        for (let i = 0; i < session.inputSources.length; i++) {
-            const inputSource = session.inputSources[i];
+        // Iterate through all input sources and update based on handedness
+        for (const inputSource of session.inputSources) {
             if (!inputSource || !inputSource.gamepad) continue;
             
             const gamepad = inputSource.gamepad;
@@ -117,28 +116,28 @@ export class VRInputManager {
             // Skip if no valid hand
             if (hand !== 'left' && hand !== 'right') continue;
             
-            // Update hand mapping if needed (in case it wasn't set during connection)
-            if (!this.handToIndex.has(hand)) {
-                this.handToIndex.set(hand, i);
-                console.log(`VRInput: Detected ${hand} hand at index ${i}`);
-            }
-            
             // Get the state object for this hand
             const state = this.inputState[hand];
             if (!state) continue;
             
-            // Read thumbstick axes (usually axes 2 and 3)
+            // Quest 2 thumbstick axes layout:
+            // axes[0,1] = unused on Quest 2
+            // axes[2,3] = thumbstick X and Y
             if (gamepad.axes && gamepad.axes.length >= 4) {
                 state.thumbstick.x = gamepad.axes[2];
                 state.thumbstick.y = gamepad.axes[3];
+            } else if (gamepad.axes && gamepad.axes.length >= 2) {
+                // Fallback for other controllers
+                state.thumbstick.x = gamepad.axes[0];
+                state.thumbstick.y = gamepad.axes[1];
             }
             
-            // Read trigger (usually button 0)
+            // Read trigger (button 0)
             if (gamepad.buttons && gamepad.buttons.length > 0) {
                 state.trigger = gamepad.buttons[0].value;
             }
             
-            // Read grip (usually button 1)
+            // Read grip (button 1)
             if (gamepad.buttons && gamepad.buttons.length > 1) {
                 state.grip = gamepad.buttons[1].pressed;
             }

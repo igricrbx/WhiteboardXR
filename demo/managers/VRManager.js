@@ -22,6 +22,9 @@ export class VRManager {
         
         // Hand markers for visualization
         this.handMarkers = new Map(); // Maps 'left'/'right' to marker mesh
+        
+        // Setup controllers BEFORE VR session starts (Three.js pattern)
+        this.setupControllers();
     }
 
     /**
@@ -88,8 +91,7 @@ export class VRManager {
                 this.handleSessionEnd();
             });
 
-            // Initialize controllers
-            this.setupControllers();
+            // Note: Controllers already set up in constructor
 
             // Trigger start callbacks
             this.onSessionStartCallbacks.forEach(callback => callback(session));
@@ -208,7 +210,7 @@ export class VRManager {
      * Clean up controllers when exiting VR
      */
     cleanupControllers() {
-        // Clean up hand markers
+        // Clean up hand markers only
         for (const [hand, marker] of this.handMarkers.entries()) {
             if (marker.parent) {
                 marker.parent.remove(marker);
@@ -218,15 +220,7 @@ export class VRManager {
         }
         this.handMarkers.clear();
         
-        this.controllers.forEach(controller => {
-            this.scene.remove(controller);
-        });
-        this.controllerGrips.forEach(grip => {
-            this.scene.remove(grip);
-        });
-        
-        this.controllers = [];
-        this.controllerGrips = [];
+        // Note: Don't remove controllers from scene - they persist between sessions
     }
 
     /**
