@@ -9,15 +9,18 @@ export class VRInputManager {
         this.controllers = [];
         this.gamepadStates = new Map();
         
-        // Input state for easy access
+        // Hand mapping (maps 'left'/'right' to input source index)
+        this.handToIndex = new Map();
+        
+        // Input state for easy access (by hand)
         this.inputState = {
-            controller0: {
+            right: {
                 thumbstick: { x: 0, y: 0 },
                 trigger: 0,
                 grip: false,
                 buttons: { a: false, b: false }
             },
-            controller1: {
+            left: {
                 thumbstick: { x: 0, y: 0 },
                 trigger: 0,
                 grip: false,
@@ -54,11 +57,20 @@ export class VRInputManager {
      * Handle controller connected
      */
     onControllerConnected(event, index) {
-        const gamepad = event.data.gamepad;
+        const inputSource = event.data;
+        const gamepad = inputSource.gamepad;
+        const hand = inputSource.handedness; // 'left', 'right', or 'none'
+        
         console.log(`Controller ${index} connected:`, gamepad);
-        console.log(`  - Hand: ${gamepad.hand || 'unknown'}`);
+        console.log(`  - Hand: ${hand}`);
         console.log(`  - Buttons: ${gamepad.buttons?.length || 0}`);
         console.log(`  - Axes: ${gamepad.axes?.length || 0}`);
+        
+        // Map this index to the hand
+        if (hand === 'left' || hand === 'right') {
+            this.handToIndex.set(hand, index);
+            console.log(`  - Mapped ${hand} hand to controller index ${index}`);
+        }
         
         this.gamepadStates.set(index, gamepad);
     }
@@ -68,6 +80,16 @@ export class VRInputManager {
      */
     onControllerDisconnected(event, index) {
         console.log(`Controller ${index} disconnected`);
+        
+        // Remove hand mapping
+        for (const [hand, idx] of this.handToIndex.entries()) {
+            if (idx === index) {
+                this.handToIndex.delete(hand);
+                console.log(`  - Unmapped ${hand} hand from controller index ${index}`);
+                break;
+            }
+        }
+        
         this.gamepadStates.delete(index);
     }
 
@@ -75,20 +97,28 @@ export class VRInputManager {
      * Update input state from controllers (call every frame)
      */
     update() {
-        this.controllers.forEach((controller, index) => {
-            if (!controller) return;
-            
-            // Get gamepad from XR input source
-            const session = this.vrManager.getCurrentSession();
-            if (!session || !session.inputSources) return;
-            
-            const inputSource = session.inputSources[index];
-            if (!inputSource || !inputSource.gamepad) return;
+        const session = this.vrManager.getCurrentSession();
+        if (!session || !session.inputSources) return;
+        
+        // Iterate through all input sources and update based on hand
+        for (let i = 0; i < session.inputSources.length; i++) {
+            const inputSource = session.inputSources[i];
+            if (!inputSource || !inputSource.gamepad) continue;
             
             const gamepad = inputSource.gamepad;
+            const hand = inputSource.handedness; // 'left', 'right', or 'none'
             
-            // Update state based on controller index
-            const state = index === 0 ? this.inputState.controller0 : this.inputState.controller1;
+            // Skip if no valid hand
+            if (hand !== 'left' && hand !== 'right') continue;
+            
+            // Update hand mapping if needed (in case it wasn't set during connection)
+            if (!this.handToIndex.has(hand)) {
+                this.handToIndex.set(hand, i);
+            }
+            
+            // Get the state object for this hand
+            const state = this.inputState[hand];
+            if (!state) continue;
             
             // Read thumbstick axes (usually axes 2 and 3)
             if (gamepad.axes && gamepad.axes.length >= 4) {
@@ -107,39 +137,56 @@ export class VRInputManager {
             }
             
             // Read A/B buttons for right controller (buttons 4 and 5)
-            if (index === 0 && gamepad.buttons && gamepad.buttons.length > 5) {
+            if (hand === 'right' && gamepad.buttons && gamepad.buttons.length > 5) {
                 state.buttons.a = gamepad.buttons[4].pressed;
                 state.buttons.b = gamepad.buttons[5].pressed;
             }
             
             // Read X/Y buttons for left controller (buttons 4 and 5)
-            if (index === 1 && gamepad.buttons && gamepad.buttons.length > 5) {
+            if (hand === 'left' && gamepad.buttons && gamepad.buttons.length > 5) {
                 state.buttons.x = gamepad.buttons[4].pressed;
                 state.buttons.y = gamepad.buttons[5].pressed;
             }
-        });
+        }
     }
 
     /**
-     * Get input state for specific controller
+     * Get input state for specific hand
      */
-    getControllerInput(index) {
-        return index === 0 ? this.inputState.controller0 : this.inputState.controller1;
+    getControllerInput(hand) {
+        return this.inputState[hand] || {
+            thumbstick: { x: 0, y: 0 },
+            trigger: 0,
+            grip: false,
+            buttons: {}
+        };
     }
 
     /**
      * Get right controller input (usually primary hand)
      */
     getRightController() {
-        return this.inputState.controller0;
+        return this.inputState.right;
     }
 
     /**
      * Get left controller input
      */
     getLeftController() {
-        return this.inputState.controller1;
+        return this.inputState.left;
     }
-
-
+    
+    /**
+     * Get the index of a controller by hand
+     */
+    getControllerIndexByHand(hand) {
+        return this.handToIndex.get(hand);
+    }
+    
+    /**
+     * Check if controllers are ready
+     */
+    areControllersReady() {
+        return this.handToIndex.has('left') && this.handToIndex.has('right');
+    }
 }
