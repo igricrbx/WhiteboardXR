@@ -19,6 +19,9 @@ export class VRManager {
         // Controller references
         this.controllers = [];
         this.controllerGrips = [];
+        
+        // Hand markers for visualization
+        this.handMarkers = new Map(); // Maps 'left'/'right' to marker mesh
     }
 
     /**
@@ -135,7 +138,7 @@ export class VRManager {
      * Setup XR controllers
      */
     setupControllers() {
-        // Controller 0 (usually right hand)
+        // Controller 0
         const controller0 = this.renderer.xr.getController(0);
         this.scene.add(controller0);
         this.controllers.push(controller0);
@@ -144,7 +147,7 @@ export class VRManager {
         this.scene.add(grip0);
         this.controllerGrips.push(grip0);
 
-        // Controller 1 (usually left hand)
+        // Controller 1
         const controller1 = this.renderer.xr.getController(1);
         this.scene.add(controller1);
         this.controllers.push(controller1);
@@ -152,14 +155,69 @@ export class VRManager {
         const grip1 = this.renderer.xr.getControllerGrip(1);
         this.scene.add(grip1);
         this.controllerGrips.push(grip1);
+        
+        // Add connection listeners to determine handedness
+        controller0.addEventListener('connected', (event) => {
+            this.onControllerConnected(event, 0, grip0);
+        });
+        
+        controller1.addEventListener('connected', (event) => {
+            this.onControllerConnected(event, 1, grip1);
+        });
 
         console.log('VR controllers initialized');
+    }
+    
+    /**
+     * Handle controller connection and add hand markers
+     */
+    onControllerConnected(event, index, grip) {
+        const inputSource = event.data;
+        const hand = inputSource.handedness; // 'left', 'right', or 'none'
+        
+        console.log(`Controller ${index} connected with hand: ${hand}`);
+        
+        if (hand === 'left' || hand === 'right') {
+            // Remove existing marker if any
+            if (this.handMarkers.has(hand)) {
+                const oldMarker = this.handMarkers.get(hand);
+                oldMarker.parent.remove(oldMarker);
+                oldMarker.geometry.dispose();
+                oldMarker.material.dispose();
+            }
+            
+            // Create hand marker sphere
+            const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+            const markerMaterial = new THREE.MeshBasicMaterial({
+                color: hand === 'left' ? 0xff0000 : 0x0000ff, // Red for left, blue for right
+                transparent: true,
+                opacity: 0.7
+            });
+            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+            marker.name = `${hand}HandMarker`;
+            
+            // Add to grip space
+            grip.add(marker);
+            this.handMarkers.set(hand, marker);
+            
+            console.log(`Added ${hand} hand marker (${hand === 'left' ? 'RED' : 'BLUE'})`);
+        }
     }
 
     /**
      * Clean up controllers when exiting VR
      */
     cleanupControllers() {
+        // Clean up hand markers
+        for (const [hand, marker] of this.handMarkers.entries()) {
+            if (marker.parent) {
+                marker.parent.remove(marker);
+            }
+            marker.geometry.dispose();
+            marker.material.dispose();
+        }
+        this.handMarkers.clear();
+        
         this.controllers.forEach(controller => {
             this.scene.remove(controller);
         });

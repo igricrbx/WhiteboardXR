@@ -100,6 +100,12 @@ export class VRInputManager {
         const session = this.vrManager.getCurrentSession();
         if (!session || !session.inputSources) return;
         
+        // Reset states first
+        this.inputState.left.thumbstick.x = 0;
+        this.inputState.left.thumbstick.y = 0;
+        this.inputState.right.thumbstick.x = 0;
+        this.inputState.right.thumbstick.y = 0;
+        
         // Iterate through all input sources and update based on hand
         for (let i = 0; i < session.inputSources.length; i++) {
             const inputSource = session.inputSources[i];
@@ -114,6 +120,7 @@ export class VRInputManager {
             // Update hand mapping if needed (in case it wasn't set during connection)
             if (!this.handToIndex.has(hand)) {
                 this.handToIndex.set(hand, i);
+                console.log(`VRInput: Detected ${hand} hand at index ${i}`);
             }
             
             // Get the state object for this hand
